@@ -1,0 +1,6 @@
+train: ../../../../Data/dataset_nose/images/train
+val: ../../../../Data/dataset_nose/images/val
+test: ../../../../Data/dataset_nose/images/test
+
+nc: 1  # Solo una clase (nose)
+names: ['nose']

@@ -1,0 +1,6 @@
+train: ../../../../Data/dataset_chile/images/train
+val: ../../../../Data/dataset_chile/images/val
+test: ../../../../Data/dataset_chile/images/test
+
+nc: 2  # Número de clases (fase y no_fase)
+names: ['face', 'no_face']

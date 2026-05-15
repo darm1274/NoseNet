@@ -1,0 +1,7 @@
+path: D:/Usuarios/Labneurociencias/Documents/Chile/Chile/Data/dataset_chile
+train: images/train
+val:   images/val
+test:  images/test
+
+nc: 2
+names: ['face', 'no_face']
