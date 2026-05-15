@@ -1,0 +1,62 @@
+# ─── Datos y resultados (no subir al repositorio) ────────────────────────────
+data/
+results/
+reports/
+*.xlsx
+*.csv
+
+# ─── Archivos de entrada (datos crudos) ──────────────────────────────────────
+*.gzip
+*.mp4
+*.avi
+*.mov
+
+# ─── Pesos de modelos ─────────────────────────────────────────────────────────
+# Los pesos se distribuyen por separado en la sección Releases.
+# Para incluirlos en git usa Git LFS: git lfs track "weights/**/*.pt"
+weights/**/*.pt
+weights/**/*.pth
+# Pesos preentrenados de YOLOv5 dentro del código fuente (solo necesarios para reentrenar)
+Models/**/*.pt
+Models/**/*.pth
+# Runs de entrenamiento (artefactos locales, no necesarios para inferencia)
+Models/*/runs/
+
+# ─── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.so
+.eggs/
+
+# ─── Entornos virtuales ───────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ─── Jupyter ──────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ─── IDEs y editores ─────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.claude/
+
+# ─── Sistema operativo ───────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+*.log

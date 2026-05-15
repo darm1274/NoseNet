@@ -1,0 +1,25 @@
+# ─── Deep Learning ────────────────────────────────────────────────────────────
+# Instalar PyTorch con CUDA desde https://pytorch.org/get-started/locally/
+# Ejemplo CUDA 11.8:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+# Ejemplo CPU only:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+torch>=1.8.0
+torchvision>=0.9.0
+
+# ─── YOLOv5 (dependencias del submodulo local) ────────────────────────────────
+matplotlib>=3.3
+numpy>=1.23.5
+opencv-python>=4.1.1
+Pillow>=10.3.0
+PyYAML>=5.3.1
+requests>=2.32.2
+scipy>=1.4.1
+tqdm>=4.66.3
+psutil
+gitpython>=3.1.30
+thop>=0.1.1
+ultralytics>=8.2.34
+
+# ─── Generación de reportes ───────────────────────────────────────────────────
+openpyxl
