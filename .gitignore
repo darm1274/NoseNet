@@ -5,6 +5,17 @@ reports/
 *.xlsx
 *.csv
 
+# ─── Salidas de detección de mejillas (generadas, no subir) ──────────────────
+results_mejillas*/
+verificacion_mejillas/
+muestra_bueno_malo/
+muestra_buenas/
+muestra_comparacion/
+_*_staging/
+
+# ─── Memoria interna del asistente (no es parte del software) ────────────────
+memory/
+
 # ─── Archivos de entrada (datos crudos) ──────────────────────────────────────
 *.gzip
 *.mp4

@@ -2,6 +2,8 @@
 
 Pipeline de detección de nariz en imágenes térmicas basado en YOLOv5. Desarrollado para estudios de neurociencia que requieren seguimiento de temperatura nasal a partir de secuencias de video térmico (formato `.gzip` de cámara FLIR / Seek o `.mp4`).
 
+Incluye además un módulo de **detección de mejillas** ([extraer_mejillas.py](extraer_mejillas.py)) que extrae la temperatura de ambas mejillas a partir de las coordenadas de nariz ya detectadas, **sin necesidad de un modelo adicional**, usando geometría anclada al recuadro de la nariz + refinamiento térmico. Ver [Detección de mejillas](#detección-de-mejillas).
+
 ---
 
 ## Descripción general
@@ -44,6 +46,14 @@ NoseNet/
 ├── extraer_frames_etiquetado.py  # Extracción balanceada de frames para etiquetado
 ├── generar_reporte.py            # Generación de reportes Excel multi-hoja
 ├── classes.txt                   # Definición de clases
+│
+│   # ── Módulo de mejillas ──────────────────────────────────────────────────
+├── extraer_mejillas.py           # Extracción de temperatura de mejillas (sin modelo extra)
+├── generar_reporte_temperatura.py# Reporte Excel nariz vs mejilla por video
+├── mejillas_procesar_lote.py     # Orquestador por carpeta (aislamiento de memoria + reintentos)
+├── mejillas_continuidad.py       # Filtra "buenos" + métricas de continuidad por video
+├── mejillas_muestra_qc.py        # Muestra visual de control: frames buenos / malos
+├── pull.bat                      # Atajo para actualizar el repo (git pull)
 │
 ├── weights/                      # Pesos entrenados (ver sección de descarga)
 │   ├── face_no_face/
@@ -271,6 +281,62 @@ reports/
 ```
 
 La `<clave>` se construye a partir de la ruta relativa del archivo de entrada, usando `__` como separador de directorios (ej.: `caso01__sesion1__video`).
+
+---
+
+## Detección de mejillas
+
+Módulo que extrae la temperatura de **ambas mejillas** reutilizando las coordenadas de nariz ya detectadas — **no entrena ni usa un modelo adicional**. A la resolución térmica (80×63 px) las mejillas no tienen bordes propios fuertes, pero están en posición fija respecto a la nariz, así que se ubican por geometría + termografía.
+
+### Cómo funciona
+
+1. **Geometría anclada a los bordes de la nariz.** Cada ROI de mejilla se coloca a partir del recuadro de la nariz: pegada a su borde lateral (puede solaparlo levemente, ≤15%), con ancho ≈0.8× el de la nariz, a la altura del pómulo (debajo de los ojos). Parámetros: `CHEEK_INNER`, `CHEEK_W`, `CHEEK_TOP`, `CHEEK_BOT`.
+2. **Refinamiento térmico simétrico (solo vertical).** Ambas ROIs se deslizan juntas en vertical para centrarse sobre la piel del pómulo, manteniéndose a la misma altura y simétricas (el horizontal queda fijo a la nariz, para no derivar hacia ojos/nariz).
+3. **Temperatura.** Se calcula `weighted_temp` con el **mismo kernel gaussiano que la nariz**, de modo que nariz y mejilla son directamente comparables.
+4. **Control de calidad por frame** — banderas: `ROI_FUERA` (mejilla con poca piel, por postura), `ASIMETRIA` (|T_izq−T_der| sobre el umbral), `PERFIL` (cabeza girada). Un frame es **bueno** si está sobre piel, alineado y con asimetría ≤ 0.8 °C (la asimetría real mediana entre mejillas es ≈ 0.62 °C).
+
+### Uso
+
+```bash
+# 1. Extracción (configura BASE_RESULTS, COORDS_DIR, etc. al inicio del archivo)
+python extraer_mejillas.py
+
+# 2. Lote grande con aislamiento de memoria (un proceso por carpeta + reintentos)
+python mejillas_procesar_lote.py
+
+# 3. Filtra los frames "buenos" y calcula continuidad por video -> CSV
+python mejillas_continuidad.py
+
+# 4. Muestra visual de control (frames buenos vs malos)
+python mejillas_muestra_qc.py
+
+# 5. Reporte Excel nariz vs mejilla
+python generar_reporte_temperatura.py
+```
+
+### Configuración (al inicio de `extraer_mejillas.py`)
+
+| Parámetro | Descripción |
+|---|---|
+| `BASE_RESULTS` | Carpeta de caso, o raíz con varios casos (se procesan todos) |
+| `COORDS_DIR` | Carpeta externa con las coordenadas de caja de nariz (si no están junto al gzip) |
+| `OUTPUT_ROOT` | Redirige las salidas fuera de los datos crudos (`None` = junto a los datos) |
+| `HOMOLOG_INPLACE` | Escribe `<archivo>_mejillas.txt` junto a cada archivo de nariz |
+| `MODO_ESTRICTO` | `False` permisivo / `True` estricto (más exigente con asimetría y postura) |
+| `REFINAR_SIMETRICO` | Refinamiento vertical simétrico (recomendado) |
+| `SKIP_EXISTING` | Reanuda un lote interrumpido sin reprocesar |
+| `GUARDAR_FRAMES`, `N_CASOS_FRAMES` | Exporta imágenes de revisión para los primeros N casos |
+
+### Salidas
+
+```
+<stem>_mejillas.txt           # image, L_roi_temp, L_weighted_temp, R_roi_temp, R_weighted_temp
+<stem>_mejillas_coords.txt    # cajas L/R + temperaturas (°C) + n_skin + flags
+<stem>_mejillas_filtrado.txt  # solo frames "buenos"
+continuidad_mejillas.csv      # por video: total, buenas, %continuidad, racha_max, ...
+```
+
+> **Formato GZIP.** Estos archivos usan cabecera simple de 4 bytes (ancho, alto) seguida de frames `uint16` consecutivos (sin framerate ni timestamps por frame). El lector de `extraer_mejillas.py` asume ese formato.
 
 ---
 
